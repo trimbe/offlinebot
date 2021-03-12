@@ -1,0 +1,29 @@
+{
+  "name": "offlinebot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vitalets/google-translate-api": "^5.0.0",
+    "axios": "^0.21.1",
+    "bufferutil": "^4.0.3",
+    "canvas": "^2.6.1",
+    "country-data": "^0.0.31",
+    "discord.js": "^12.5.1",
+    "erlpack": "github:discord/erlpack",
+    "jimp": "^0.16.1",
+    "juration": "^0.1.1",
+    "lodash": "^4.17.20",
+    "lowdb": "^1.0.0",
+    "luxon": "^1.26.0",
+    "neuquant": "^1.0.2",
+    "node-lzw": "^0.3.1",
+    "utf-8-validate": "^5.0.4",
+    "zlib-sync": "^0.1.7"
+  }
+}
