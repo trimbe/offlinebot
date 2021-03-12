@@ -68,7 +68,11 @@ function processMessage(msg) {
 
     const firstWord = msg.content.split(/ +/).shift().toLowerCase();
 
-    const command = commands.find(command => { return command.triggers.includes(firstWord)});
+    const command = commands.find(command => { 
+        if ((command.admin && msg.guild.ownerId == msg.author.id) || command.admin == undefined) {
+            return command.triggers.includes(firstWord)
+        }
+    });
 
     if(!command || (ignored && !command.bypassIgnore)) 
         return;

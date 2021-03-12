@@ -29,7 +29,7 @@ function ignoreUser(message) {
         db.get('ignores').find({ id: user.id }).assign({ until: unignoreDate }).write();
     } else {
         db.get('ignores').push({
-            id: userId,
+            id: user.id,
             until: unignoreDate
         }).write();
     }
@@ -66,13 +66,15 @@ module.exports = {
             execute: ignoreUser,
             triggers: [
                 '!ignore'
-            ]
+            ],
+            admin: true
         },
         { 
             execute: unignoreUser,
             triggers: [
                 '!unignore'
-            ]
+            ],
+            admin: true
         },
         {
             execute: checkIgnore,
