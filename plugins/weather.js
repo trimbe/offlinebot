@@ -246,6 +246,26 @@ function encodeGif(canvases) {
     //     bytesUsed++;
     // }
 
+    
+    // repeat application extension
+
+    // extension introducer
+    offset = buffer.writeUInt8(0x21, offset);
+    // extension label
+    offset = buffer.writeUInt8(0xFF, offset);
+    // block size
+    offset = buffer.writeUInt8(0x0B, offset);
+    // application identifier
+    offset += buffer.write('NETSCAPE', offset, 'ascii');
+    // auth code
+    offset += buffer.write('2.0', offset, 'ascii');
+    
+    offset = buffer.writeUInt8(0x03, offset);
+    offset = buffer.writeUInt8(0x01, offset);
+    offset = buffer.writeUInt8(0x00, offset);
+    offset = buffer.writeUInt8(0x00, offset);
+    offset = buffer.writeUInt8(0x00, offset);
+
 
     for (let i = 0; i < canvases.length; i++) {
         // graphic control extension
@@ -367,25 +387,6 @@ function encodeGif(canvases) {
 
         offset = buffer.writeUInt8(0, offset);
     }    
-
-    // repeat application extension
-
-    // extension introducer
-    offset = buffer.writeUInt8(0x21, offset);
-    // extension label
-    offset = buffer.writeUInt8(0xFF, offset);
-    // block size
-    offset = buffer.writeUInt8(0x0B, offset);
-    // application identifier
-    offset += buffer.write('NETSCAPE', offset, 'ascii');
-    // auth code
-    offset += buffer.write('2.0', offset, 'ascii');
-    
-    offset = buffer.writeUInt8(0x03, offset);
-    offset = buffer.writeUInt8(0x01, offset);
-    offset = buffer.writeUInt8(0x00, offset);
-    offset = buffer.writeUInt8(0x00, offset);
-    offset = buffer.writeUInt8(0x00, offset);
 
     // gif trailer
     offset = buffer.writeUInt8(0x3B, offset);
