@@ -192,7 +192,7 @@ function generateColorTable(canvases) {
             pixels.push(b);
         }
 
-        let neuObj = neuquant.quantize(pixels, 10);
+        let neuObj = neuquant.quantize(pixels, 1);
         table.push(neuObj);
     }
 
