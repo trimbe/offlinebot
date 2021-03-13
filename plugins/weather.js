@@ -127,7 +127,7 @@ async function weather(message) {
     const altCanvas = createCanvas(400, 110);
     const altCtx = altCanvas.getContext('2d');
 
-    ctx.fillStyle = '#36393E';
+    ctx.fillStyle = '#36393F';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     let font = 'Helvetica';
