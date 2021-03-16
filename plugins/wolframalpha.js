@@ -5,13 +5,12 @@ const apiKey = process.env.WOLFRAM_KEY;
 const apiUrl = 'http://api.wolframalpha.com/v2/query';
 
 const wolframAlpha = async (message) => {
-	const query = message.content.replace('!wa', '');
 
     let res = await axios.get(apiUrl, {
         params: {
             appid: apiKey,
             output: 'json',
-            input: query,
+            input: message.argsString,
             ip: '52.41.96.17',
             reinterpret: 'true',
             scantimeout: '5',

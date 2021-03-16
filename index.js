@@ -70,7 +70,7 @@ function processMessage(msg) {
 
     const command = commands.find(command => { 
         if ((command.admin && msg.guild.ownerId == msg.author.id) || command.admin == undefined) {
-            return command.triggers.includes(firstWord)
+            return command.triggers.includes(firstWord);
         }
     });
 
