@@ -21,6 +21,7 @@ function remind(message) {
         duration = juration.parse(duration);
     } catch(e) {
         console.log(`Error parsing duration: ${e}`);
+        return;
     }
 
     let reminder = content.slice(content.indexOf('"') + 1, content.length - 1);
