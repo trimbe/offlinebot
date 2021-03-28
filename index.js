@@ -69,7 +69,7 @@ function processMessage(msg) {
     const firstWord = msg.content.split(/ +/).shift().toLowerCase();
 
     const command = commands.find(command => { 
-        if ((command.admin && msg.guild.ownerId == msg.author.id) || command.admin == undefined) {
+        if ((command.admin && msg.guild.ownerID == msg.author.id) || command.admin == undefined) {
             return command.triggers.includes(firstWord);
         }
     });
