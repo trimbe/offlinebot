@@ -52,6 +52,8 @@ async function updateStockStatus(client) {
         return;
 
     const price = await getPrice(statusStock, true);    
+    if (price.price == undefined || price.change == undefined)
+        return;
     client.user.setActivity(`${statusStock}: ${price.price} (${price.change}%)`, { type: 'WATCHING' });
 }
 
@@ -92,7 +94,7 @@ async function getPrice(symbolQuery, omitAH) {
     switch(quote['marketState']) {
         case 'PRE':
             marketHours = 'Pre-market';
-            if (!quote['preMarketPrice'] || !quote['preMarketChangePercent']) {
+            if (quote['preMarketPrice'] == undefined || quote['preMarketChangePercent'] == undefined) {
                 log(`Missing premarket data for ${symbol}`);
                 return false;
             }
@@ -109,12 +111,12 @@ async function getPrice(symbolQuery, omitAH) {
         case 'CLOSED': // use post-market price/change
             // do other exchanges have pre/postmarket?
             if (quote['exchange'] == 'NYQ' || quote['exchange'] == 'NMS') {
-                if (!quote['postMarketPrice'] || !quote['postMarketChangePercent']) {
-                    log(`Missing post market price or percent`);
+                if (quote['postMarketPrice'] == undefined || quote['postMarketChangePercent'] == undefined) {
+                    log(`Missing post market price or percent: ${JSON.stringify(quote)}`);
                     return false;
                 }
                 price = quote['postMarketPrice'];
-                if(!quote['postMarketChangePercent']) {
+                if(quote['postMarketChangePercent'] == undefined) {
                     change = 0;
                 } else {
                     change = quote['postMarketChangePercent'].toFixed(2);
