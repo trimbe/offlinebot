@@ -1,8 +1,16 @@
 const axios = require('axios').default;
 const discord = require('discord.js');
-const { createCanvas } = require('canvas');
+const {
+    createCanvas
+} = require('canvas');
 const fs = require('fs');
 const neuquant = require('neuquant');
+
+var db = undefined;
+
+function init(low) {
+    db = low;
+}
 
 const climacellToken = process.env.CLIMACELL_TOKEN;
 const geocodeKey = process.env.GOOGLE_GEOCODE_KEY;
@@ -67,12 +75,19 @@ async function geocodeLocation(query) {
 }
 
 async function weather(message) {
-    if (message.argsString == '') {
-        return;
+    let query = message.argsString;
+    if (query == '') {
+        let savedLocation = db.get('weatherLocation.' + message.author.id);
+        if (savedLocation != undefined) {
+            query = savedLocation;
+        } else {
+            return;
+        }
     }
-    let geocode = await geocodeLocation(message.argsString);
+    let geocode = await geocodeLocation(query);
     if (!geocode)
         return;
+
 
     let reqData = {
         location: `${geocode.location.lat}, ${geocode.location.lng}`,
@@ -100,26 +115,27 @@ async function weather(message) {
         });
 
         var data = res.data.data.timelines[0].intervals[0];
-    } catch(e) {
-        //console.log(e);
+
+        var condition = weatherCodes[data.values.weatherCode.toString()];
+        var temperature = data.values.temperature;
+        var tempApparent = data.values.temperatureApparent;
+        var windSpeed = data.values.windSpeed;
+        var windGust = data.values.windGust;
+        var windDirection = data.values.windDirection;
+
+        var tempF = temperature.toFixed(1);
+        var tempC = ((temperature - 32) * (5 / 9)).toFixed(1);
+        var tempApparentF = tempApparent.toFixed(1);
+        var tempApparentC = ((tempApparent - 32) * (5 / 9)).toFixed(1);
+        var humidity = data.values.humidity;
+        var windSpeedMiles = windSpeed.toFixed(1);
+        var windSpeedKm = (windSpeed * 1.609344).toFixed(1);
+        var windGustMiles = windGust.toFixed(1);
+        var windGustKm = (windGust * 1.609344).toFixed(1);
+    } catch (e) {
+        message.channel.send('Error retrieving data from weather api');
+        return;
     }
-
-    const condition = weatherCodes[data.values.weatherCode];
-    const temperature = data.values.temperature;
-    const tempApparent = data.values.temperatureApparent;
-    const windSpeed = data.values.windSpeed;
-    const windGust = data.values.windGust;
-    const windDirection = data.values.windDirection;
-
-    const tempF = temperature.toFixed(1);
-    const tempC = ((temperature - 32) * (5 / 9)).toFixed(1);
-    const tempApparentF = tempApparent.toFixed(1);
-    const tempApparentC = ((tempApparent - 32) * (5 / 9)).toFixed(1);
-    const humidity = data.values.humidity;
-    const windSpeedMiles = windSpeed.toFixed(1);
-    const windSpeedKm = (windSpeed * 1.609344).toFixed(1);
-    const windGustMiles = windGust.toFixed(1);
-    const windGustKm = (windGust * 1.609344).toFixed(1);
 
     const canvas = createCanvas(400, 110);
     const ctx = canvas.getContext('2d');
@@ -129,7 +145,7 @@ async function weather(message) {
 
     ctx.fillStyle = '#36393F';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     let font = 'Helvetica';
 
     ctx.font = '14pt ' + font;
@@ -152,7 +168,7 @@ async function weather(message) {
     ctx.fillText(`${tempF} F\n${tempC} C`, 10, 40 + textHeight);
 
     ctx.font = '10pt ' + font;
-    altCtx.font = '10pt ' + font;    
+    altCtx.font = '10pt ' + font;
 
     ctx.fillText('WIND', 120, 40 + textHeight + 40);
     altCtx.fillText('GUST', 120, 40 + textHeight + 40);
@@ -173,6 +189,22 @@ async function weather(message) {
     });
 
     return;
+}
+
+function setWeather(message) {
+    const weatherLocation = db
+        .defaults({
+            weatherLocation: {}
+        })
+        .get('weatherLocation');
+
+    let content = message.content.split(' ');
+    content.shift();
+    content = content.join(' ');
+
+    db.set('weatherLocation.' + message.author.id, content).write();
+
+    message.channel.send('Default weather location changed to: ' + content);
 }
 
 function generateColorTable(canvases) {
@@ -246,7 +278,7 @@ function encodeGif(canvases) {
     //     bytesUsed++;
     // }
 
-    
+
     // repeat application extension
 
     // extension introducer
@@ -259,7 +291,7 @@ function encodeGif(canvases) {
     offset += buffer.write('NETSCAPE', offset, 'ascii');
     // auth code
     offset += buffer.write('2.0', offset, 'ascii');
-    
+
     offset = buffer.writeUInt8(0x03, offset);
     offset = buffer.writeUInt8(0x01, offset);
     offset = buffer.writeUInt8(0x00, offset);
@@ -299,10 +331,10 @@ function encodeGif(canvases) {
         // image height
         offset = buffer.writeUInt16LE(height, offset);
         // packed fields
-        let packed = 0b10000000; 
+        let packed = 0b10000000;
         let colorTableLen = Math.ceil(Math.log2(colorTable[i].palette.length / 3) - 1);
-        offset = buffer.writeUInt8(packed | colorTableLen, offset); 
-        
+        offset = buffer.writeUInt8(packed | colorTableLen, offset);
+
         let desiredTableBytes = 3 * Math.pow(2, Math.ceil(Math.log2(colorTable[i].palette.length / 3) - 1) + 1);
         let bytesUsed = 0;
 
@@ -318,7 +350,7 @@ function encodeGif(canvases) {
             bytesUsed += 3;
         }
 
-        while(bytesUsed < desiredTableBytes) {
+        while (bytesUsed < desiredTableBytes) {
             offset = buffer.writeUInt8(0, offset);
             bytesUsed++;
         }
@@ -343,7 +375,7 @@ function encodeGif(canvases) {
         let inputBuffer = '';
 
         packer.pack(Math.pow(2, codeSize), codeLen);
-        for(let i = 0; i < input.length; i++) {
+        for (let i = 0; i < input.length; i++) {
             let val = input[i];
             if (codes.has(inputBuffer + ',' + val)) {
                 inputBuffer = inputBuffer + ',' + val;
@@ -352,7 +384,7 @@ function encodeGif(canvases) {
                 packer.pack(codes.get(inputBuffer.toString()), codeLen);
                 if (nextCode - 1 > Math.pow(2, codeLen) - 1)
                     codeLen++;
-                
+
                 // reset code table
                 if (nextCode == 4096) {
                     // clear code
@@ -364,7 +396,7 @@ function encodeGif(canvases) {
                         codes.set(j.toString(), j);
                     }
                 }
-                
+
                 inputBuffer = val;
             }
         }
@@ -372,7 +404,7 @@ function encodeGif(canvases) {
         packer.pack(Math.pow(2, codeSize) + 1, codeLen);
 
         let bytes = packer.getBytes();
-        
+
         // block size
         offset = buffer.writeUInt8(Math.min(255, bytes.length), offset);
 
@@ -386,7 +418,7 @@ function encodeGif(canvases) {
         }
 
         offset = buffer.writeUInt8(0, offset);
-    }    
+    }
 
     // gif trailer
     offset = buffer.writeUInt8(0x3B, offset);
@@ -425,13 +457,20 @@ class Packer {
 
 module.exports = {
     name: "Weather",
-    commands: [
-        {
+    commands: [{
             execute: weather,
             triggers: [
                 '!we',
                 '!weather'
             ]
+        },
+        {
+            execute: setWeather,
+            triggers: [
+                '!setwe',
+                '!setweather'
+            ]
         }
-    ]
+    ],
+    init: init
 }
