@@ -1,4 +1,6 @@
-const { DateTime } = require('luxon');
+const {
+    DateTime
+} = require('luxon');
 const juration = require('juration');
 
 var db = undefined;
@@ -9,7 +11,9 @@ function init(low) {
 
 function remind(message) {
     const reminders = db
-        .defaults({ reminders: [] })
+        .defaults({
+            reminders: []
+        })
         .get('reminders');
 
     let content = message.content.split(' ');
@@ -19,7 +23,7 @@ function remind(message) {
     let duration = content.slice(0, content.indexOf('"') - 1);
     try {
         duration = juration.parse(duration);
-    } catch(e) {
+    } catch (e) {
         console.log(`Error parsing duration: ${e}`);
         return;
     }
@@ -28,19 +32,25 @@ function remind(message) {
 
     reminders.push({
         id: message.author.id,
-        timestamp: DateTime.now().plus({ seconds: duration }),
+        timestamp: DateTime.now().plus({
+            seconds: duration
+        }),
         reminder,
         channel_id: message.channel.id
     }).write();
+
+    message.channel.send('Successfully added reminder.');
 }
 
 function clearReminders(message) {
 
 }
 
-function tickReminders(client) {    
+function tickReminders(client) {
     const reminders = db
-        .defaults({ reminders: [] })
+        .defaults({
+            reminders: []
+        })
         .get('reminders');
 
     const remindersArray = reminders.value();
@@ -56,14 +66,13 @@ function tickReminders(client) {
 
 module.exports = {
     name: "Remind",
-    commands: [
-        {
+    commands: [{
             execute: remind,
             triggers: [
                 '!remindme'
             ]
         },
-        { 
+        {
             execute: clearReminders,
             triggers: [
                 '!clearreminders'
